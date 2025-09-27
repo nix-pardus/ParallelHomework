@@ -1,28 +1,23 @@
-﻿namespace ParallelHomework;
+﻿namespace ParallelHomework.ArrayCalculators;
 
-public static class ArrayHelper
+public class ArrayCalculatorWithThreads : IArrayCalculator
 {
-    public static long Sum(int[] array)
-    {
-        long sum = 0;
-        foreach (var item in array)
-        {
-            sum += item;
-        }
-        return sum;
-    }
-
-    public static long SumWithListThreads(int[] array, int numberOfThreads)
+    private readonly int _numberOfThreads;
+    public ArrayCalculatorWithThreads(int numberOfThreads)
     {
         if (numberOfThreads <= 0)
         {
             throw new ArgumentException("Number of threads must be greater than zero.");
         }
+        _numberOfThreads = numberOfThreads;
+    }
+    public long CalculateSum(int[] array)
+    {
         int length = array.Length;
-        int chunkSize = (int)Math.Ceiling((double)length / numberOfThreads);
-        long[] sums = new long[numberOfThreads];
+        int chunkSize = (int)Math.Ceiling((double)length / _numberOfThreads);
+        long[] sums = new long[_numberOfThreads];
         List<Thread> threads = new List<Thread>();
-        for (int i = 0; i < numberOfThreads; i++)
+        for (int i = 0; i < _numberOfThreads; i++)
         {
             int threadIndex = i;
             var thread = new Thread(() =>
@@ -49,8 +44,4 @@ public static class ArrayHelper
         return totalSum;
     }
 
-    public static long SumWithPLINQ(int[] array)
-    {
-        return array.AsParallel().Sum(x => (long)x);
-    }   
 }

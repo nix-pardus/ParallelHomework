@@ -1,13 +1,40 @@
 ﻿using ParallelHomework;
-using System.Diagnostics;
+using ParallelHomework.ArrayCalculators;
+using ParallelHomework.Table;
 
-Console.WriteLine("Тест на 100 000");
-PrintResults(CreateArray(100_000));
-Console.WriteLine("Тест на 1 000 000");
-PrintResults(CreateArray(1_000_000));
-Console.WriteLine("Тест на 10 000 000");
-PrintResults(CreateArray(10_000_000));
+const int COUNT_THREADS = 6;
 
+Console.WriteLine(ComputerInfo.GetSummaryInfo());
+Console.WriteLine();
+
+int[] arr1 = CreateArray(100_000);
+int[] arr2 = CreateArray(1_000_000);
+int[] arr3 = CreateArray(10_000_000);
+
+var calculator = new ArrayCalculatorContext(new ArrayCalculator());
+
+TableDrawer table = new TableDrawer();
+string content = table.AddCell("")
+    .AddCell("Синхронный метод")
+    .AddCell($"С использованием Thread (потоков: {COUNT_THREADS})")
+    .AddCell("С использованием PLINQ")
+    .MoveToNewRow()
+    .AddCell("Array length: 100 000")
+    .AddCell(calculator.SetCalculator(new ArrayCalculator()).CalculateSum(arr1).sw.ElapsedMilliseconds.ToString())
+    .AddCell(calculator.SetCalculator(new ArrayCalculatorWithThreads(COUNT_THREADS)).CalculateSum(arr1).sw.ElapsedMilliseconds.ToString())
+    .AddCell(calculator.SetCalculator(new ArrayCalculatorWithPlinq()).CalculateSum(arr1).sw.ElapsedMilliseconds.ToString())
+    .MoveToNewRow()
+    .AddCell("Array length: 1 000 000")
+    .AddCell(calculator.SetCalculator(new ArrayCalculator()).CalculateSum(arr2).sw.ElapsedMilliseconds.ToString())
+    .AddCell(calculator.SetCalculator(new ArrayCalculatorWithThreads(4)).CalculateSum(arr2).sw.ElapsedMilliseconds.ToString())
+    .AddCell(calculator.SetCalculator(new ArrayCalculatorWithPlinq()).CalculateSum(arr2).sw.ElapsedMilliseconds.ToString())
+    .MoveToNewRow()
+    .AddCell("Array length: 10 000 000")
+    .AddCell(calculator.SetCalculator(new ArrayCalculator()).CalculateSum(arr3).sw.ElapsedMilliseconds.ToString())
+    .AddCell(calculator.SetCalculator(new ArrayCalculatorWithThreads(4)).CalculateSum(arr3).sw.ElapsedMilliseconds.ToString())
+    .AddCell(calculator.SetCalculator(new ArrayCalculatorWithPlinq()).CalculateSum(arr3).sw.ElapsedMilliseconds.ToString())
+    .Draw();
+Console.WriteLine(content);
 
 int[] CreateArray(int length)
 {
@@ -19,23 +46,4 @@ int[] CreateArray(int length)
     }
 
     return arr;
-}
-
-void PrintResults(int[] arr)
-{
-    Stopwatch stopwatch = new Stopwatch();
-    stopwatch.Start();
-    long sum = ArrayHelper.Sum(arr);
-    stopwatch.Stop();
-    Console.WriteLine($"Sum: {sum}, Time taken (Single Thread): {stopwatch.ElapsedMilliseconds} ms");
-
-    stopwatch.Restart();
-    long sumWithListThreads = ArrayHelper.SumWithListThreads(arr, 4);
-    stopwatch.Stop();
-    Console.WriteLine($"Sum: {sumWithListThreads}, Time taken (4 List Threads): {stopwatch.ElapsedMilliseconds} ms");
-
-    stopwatch.Restart();
-    long sumWithPLINQ = ArrayHelper.SumWithPLINQ(arr);
-    stopwatch.Stop();
-    Console.WriteLine($"Sum: {sumWithPLINQ}, Time taken (PLINQ): {stopwatch.ElapsedMilliseconds} ms");
 }
